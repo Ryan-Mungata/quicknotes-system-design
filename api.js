@@ -1,5 +1,5 @@
 // ==========================================================
-// DownNote API Client - api.js
+// DownNote - api.js  (STAGE: Task 2, Step 3 = POST)
 // Talks to the JSONPlaceholder practice API.
 // ==========================================================
 
@@ -7,9 +7,14 @@
 const loadBtn = document.querySelector("#load-btn");
 const statusText = document.querySelector("#status");
 const notesList = document.querySelector("#notes-list");
+const noteForm = document.querySelector("#note-form");
+const titleInput = document.querySelector("#title-input");
+const bodyInput = document.querySelector("#body-input");
+const submitBtn = document.querySelector("#submit-btn");
 
 // ----- 2. CONSTANTS -----
 const API_URL = "https://jsonplaceholder.typicode.com/posts";
+const MAX_TITLE_LENGTH = 100;
 
 // ----- 3. STATE -----
 // The notes currently shown on the page.
@@ -49,6 +54,12 @@ function makeReadable(note) {
 function setStatus(message, type) {
   statusText.textContent = message;
   statusText.className = type || "";
+}
+
+// Disables (or enables) the buttons while a request is running.
+function setBusy(isBusy) {
+  loadBtn.disabled = isBusy;
+  submitBtn.disabled = isBusy;
 }
 
 // ----- 5. request() -----
@@ -114,7 +125,7 @@ function renderNotes() {
 async function loadNotes() {
   // Before the request: tell the user and block extra clicks
   setStatus("Loading notes...", "loading");
-  loadBtn.disabled = true;
+  setBusy(true);
 
   try {
     const result = await request(`${API_URL}?_limit=10`);
@@ -132,12 +143,78 @@ async function loadNotes() {
     console.error(error);
   } finally {
     // Runs whether it worked or failed
-    loadBtn.disabled = false;
+    setBusy(false);
   }
 }
 
-// ----- 8. EVENT LISTENERS AND START -----
+// ----- 8. VALIDATION -----  [TASK 2]
+// Returns a message describing the problem, or "" when the title is fine.
+function validateTitle(title) {
+  if (title === "") {
+    return "Please enter a title for your note.";
+  }
+  if (title.length > MAX_TITLE_LENGTH) {
+    return `The title must be ${MAX_TITLE_LENGTH} characters or fewer.`;
+  }
+  return "";
+}
+
+// ----- 9. CREATE A NOTE (POST) -----  [TASK 2]
+async function createNote(title, body) {
+  // Before the request: tell the user and block extra clicks
+  setStatus("Creating note...", "loading");
+  setBusy(true);
+
+  try {
+    const result = await request(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: title, body: body, userId: 1 }),
+    });
+
+    // The server should send back the note it created, with an id
+    if (!result.data || result.data.id === undefined) {
+      throw new Error("The server did not send back the new note");
+    }
+
+    // Add the returned note to the TOP of the list
+    notes.unshift(result.data);
+    renderNotes();
+
+    setStatus(`Note created (status ${result.status}, id ${result.data.id}).`, "success");
+
+    // Clear the form (only after success, so a failed try keeps the text)
+    titleInput.value = "";
+    bodyInput.value = "";
+  } catch (error) {
+    setStatus("Could not create the note. Please try again.", "error");
+    console.error(error);
+  } finally {
+    setBusy(false);
+  }
+}
+
+// ----- 10. FORM SUBMIT -----  [TASK 2]
+async function handleSubmit(event) {
+  // Stop the browser from reloading the page
+  event.preventDefault();
+
+  const title = titleInput.value.trim();
+  const body = bodyInput.value.trim();
+
+  const problem = validateTitle(title);
+  if (problem) {
+    setStatus(problem, "error");
+    titleInput.focus();
+    return;
+  }
+
+  await createNote(title, body);
+}
+
+// ----- 11. EVENT LISTENERS AND START -----
 loadBtn.addEventListener("click", loadNotes);
+noteForm.addEventListener("submit", handleSubmit);
 
 // Show the empty state when the page first opens
 renderNotes();
