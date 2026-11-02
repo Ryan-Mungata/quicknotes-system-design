@@ -1,0 +1,343 @@
+/* 1. RESET */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* 2. COLOURS (CSS variables) */
+:root {
+  color-scheme: light;
+
+  --bg: #f4f5fb;
+  --surface: #ffffff;
+  --note-bg: #fafaff;
+  --text: #1b1d2a;
+  --muted: #5f6480;
+  --border: #e1e3ef;
+
+  --brand: #5b5bd6;
+  --brand-hover: #4646b8;
+  --brand-contrast: #ffffff;
+  --header-start: #4f46e5;
+  --header-end: #7c3aed;
+
+  --danger: #c62828;
+  --danger-contrast: #ffffff;
+
+  /* status messages */
+  --success-bg: #e6f6ec;
+  --success-text: #146c2e;
+  --success-border: #8fd4a6;
+  --error-bg: #fdecec;
+  --error-text: #a31515;
+  --error-border: #f0a3a3;
+  --loading-bg: #eef0fb;
+  --loading-text: #3b3fa0;
+  --loading-border: #b9bff0;
+
+  --shadow: 0 6px 20px rgba(27, 29, 42, 0.07);
+}
+
+/* 3. DARK THEME */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --bg: #0e1018;
+    --surface: #171a26;
+    --note-bg: #1c2030;
+    --text: #eceefa;
+    --muted: #9aa1c0;
+    --border: #2b3047;
+
+    --brand: #8c8cff;
+    --brand-hover: #a8a8ff;
+    --brand-contrast: #0f1024;
+    --header-start: #1e1b4b;
+    --header-end: #312e81;
+
+    --danger: #ff8080;
+    --danger-contrast: #2a0a0a;
+
+    --success-bg: #12301c;
+    --success-text: #8be0a4;
+    --success-border: #2d6b43;
+    --error-bg: #3a1616;
+    --error-text: #ffb0b0;
+    --error-border: #7a2f2f;
+    --loading-bg: #1d2142;
+    --loading-text: #b7bdff;
+    --loading-border: #3d4388;
+
+    --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* 4. BODY */
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  line-height: 1.6;
+  color: var(--text);
+  background-color: var(--bg);
+}
+
+/* 5. HEADER */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: linear-gradient(135deg, var(--header-start), var(--header-end));
+  color: #ffffff;
+  padding: 24px 0;
+}
+
+.header-inner {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+header p {
+  margin: 4px 0 0 0;
+  opacity: 0.9;
+}
+
+/* 6. MAIN AND CARDS */
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+section {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+section h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.25rem;
+}
+
+/* 7. FORM */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--text);
+  background-color: var(--bg);
+}
+
+input {
+  min-height: 46px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 30%, transparent);
+}
+
+/* 8. BUTTONS */
+button {
+  align-self: flex-start;
+  min-height: 46px;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--brand-contrast);
+  background-color: var(--brand);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+button:hover:not(:disabled) {
+  background-color: var(--brand-hover);
+}
+
+button:focus-visible {
+  outline: 3px solid var(--brand);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  color: var(--danger);
+  background-color: transparent;
+  border: 1px solid var(--danger);
+}
+
+button.btn-danger:hover:not(:disabled) {
+  color: var(--danger-contrast);
+  background-color: var(--danger);
+}
+
+.delete-btn {
+  min-height: 34px;
+  padding: 4px 14px;
+  font-size: 0.85rem;
+}
+
+/* 9. STATUS MESSAGES */
+#status {
+  margin: 16px 0 0 0;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+#status:empty {
+  display: none;
+}
+
+#status.loading {
+  color: var(--loading-text);
+  background-color: var(--loading-bg);
+  border-color: var(--loading-border);
+}
+
+#status.success {
+  color: var(--success-text);
+  background-color: var(--success-bg);
+  border-color: var(--success-border);
+}
+
+#status.error {
+  color: var(--error-text);
+  background-color: var(--error-bg);
+  border-color: var(--error-border);
+}
+
+/* 10. NOTE CARDS */
+#notes-list {
+  list-style: none;
+  margin: 16px 0 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.note-card {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--brand);
+  border-radius: 12px;
+  background-color: var(--note-bg);
+}
+
+.note-title {
+  margin: 0 0 6px 0;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.note-body {
+  margin: 0 0 10px 0;
+  color: var(--muted);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.note-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.note-id {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.empty-message {
+  padding: 24px 12px;
+  text-align: center;
+  color: var(--muted);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+/* 11. FOOTER */
+footer {
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+footer p {
+  margin: 0;
+}
+
+/* 12. SMALL SCREENS */
+@media (max-width: 600px) {
+  header {
+    padding: 18px 0;
+  }
+
+  header h1 {
+    font-size: 1.5rem;
+  }
+
+  main {
+    padding: 16px 12px;
+  }
+
+  section {
+    padding: 18px;
+  }
+}
