@@ -72,4 +72,4 @@ quicknotes-system-design/
 
 ## Author
 
-Developed by Konoha Technologies.
+Developed by Konoha Technologies.g
