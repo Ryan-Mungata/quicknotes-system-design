@@ -225,6 +225,8 @@ button.btn-danger:hover:not(:disabled) {
 }
 
 .delete-btn {
+  align-self: center;
+  margin-left: auto; /* pushes the button to the right of the card footer */
   min-height: 34px;
   padding: 4px 14px;
   font-size: 0.85rem;

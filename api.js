@@ -1,8 +1,3 @@
-// ==========================================================
-// DownNote - api.js  (STAGE: Task 2, Step 3 = POST)
-// Talks to the JSONPlaceholder practice API.
-// ==========================================================
-
 // ----- 1. SELECT ELEMENTS -----
 const loadBtn = document.querySelector("#load-btn");
 const statusText = document.querySelector("#status");
@@ -20,12 +15,10 @@ const MAX_TITLE_LENGTH = 100;
 // The notes currently shown on the page.
 let notes = [];
 
+// True while a request is running (the buttons are disabled meanwhile).
+let isBusy = false;
+
 // ----- 3b. READABLE DEMO TEXT -----
-// JSONPlaceholder is a practice API: every note it sends has Latin filler
-// text ("sunt aut facere..."). The request, the note ids and the count are
-// all real, but for a readable demo we SHOW the sample note below that
-// matches each id. To see the server's own text, delete ".map(makeReadable)"
-// in loadNotes().
 const DEMO_NOTES = [
   { title: "Revise JavaScript async/await", body: "Practise fetch with try/catch/finally.\nRe-read the Day 5 notes before Friday." },
   { title: "Buy groceries", body: "Milk, bread, eggs and tomatoes.\nPass by the market after class." },
@@ -50,16 +43,19 @@ function makeReadable(note) {
 }
 
 // ----- 4. STATUS HELPER -----
-// type is "loading", "success" or "error"; the CSS colours each one.
 function setStatus(message, type) {
   statusText.textContent = message;
   statusText.className = type || "";
 }
 
-// Disables (or enables) the buttons while a request is running.
-function setBusy(isBusy) {
-  loadBtn.disabled = isBusy;
-  submitBtn.disabled = isBusy;
+// Disables (or enables) EVERY button while a request is running.
+function setBusy(value) {
+  isBusy = value;
+  loadBtn.disabled = value;
+  submitBtn.disabled = value;
+  for (const button of document.querySelectorAll(".delete-btn")) {
+    button.disabled = value;
+  }
 }
 
 // ----- 5. request() -----
@@ -69,9 +65,11 @@ function setBusy(isBusy) {
 async function request(url, options = {}) {
   const response = await fetch(url, options);
 
-  // fetch does NOT fail on 404 or 500, so we check ourselves
+  // fetch does NOT fail on 404 or 500
   if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
+    const error = new Error(`Request failed with status ${response.status}`);
+    error.status = response.status; // lets callers react to a specific code, such as 404
+    throw error;
   }
 
   // Read the body as text first: some successful replies (such as
@@ -100,6 +98,27 @@ function createNoteCard(note) {
     body.textContent = note.body;
     card.appendChild(body);
   }
+
+  // Footer: the note's id and a Delete button
+  const footer = document.createElement("div");
+  footer.className = "note-footer";
+
+  const idLabel = document.createElement("span");
+  idLabel.className = "note-id";
+  idLabel.textContent = `Note #${note.id}`;
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.type = "button";
+  deleteBtn.className = "btn-danger delete-btn";
+  deleteBtn.textContent = "Delete";
+  deleteBtn.setAttribute("aria-label", `Delete note: ${note.title}`);
+  deleteBtn.disabled = isBusy; // a button drawn while a request runs starts disabled
+  deleteBtn.addEventListener("click", function () {
+    deleteNote(note);
+  });
+
+  footer.append(idLabel, deleteBtn);
+  card.appendChild(footer);
 
   return card;
 }
@@ -130,7 +149,7 @@ async function loadNotes() {
   try {
     const result = await request(`${API_URL}?_limit=10`);
 
-    // Make sure we really got a list before using it
+    
     if (!Array.isArray(result.data)) {
       throw new Error("The server did not send a list of notes");
     }
@@ -147,7 +166,7 @@ async function loadNotes() {
   }
 }
 
-// ----- 8. VALIDATION -----  [TASK 2]
+// ----- 8. VALIDATION -----
 // Returns a message describing the problem, or "" when the title is fine.
 function validateTitle(title) {
   if (title === "") {
@@ -159,7 +178,38 @@ function validateTitle(title) {
   return "";
 }
 
-// ----- 9. CREATE A NOTE (POST) -----  [TASK 2]
+
+// ----- 8b. DELETE: REMOVE A NOTE -----
+function removeFromList(note) {
+  notes = notes.filter((item) => item !== note);
+  renderNotes();
+}
+ 
+async function deleteNote(note) {
+  setStatus("Deleting note...", "loading");
+  setBusy(true);
+ 
+  try {
+    const result = await request(`${API_URL}/${note.id}`, { method: "DELETE" });
+ 
+    removeFromList(note);
+    setStatus(`Note deleted (status ${result.status}, id ${note.id}).`, "success");
+  } catch (error) {
+    if (error.status === 404 && note.createdHere) {
+      // Already gone on the server
+      removeFromList(note);
+      setStatus(`Note removed. The server no longer has note ${note.id}.`, "success");
+    } else {
+      // Not sure it was deleted, so keep the note and tell the user
+      setStatus("Could not delete the note. Please try again.", "error");
+      console.error(error);
+    }
+  } finally {
+    setBusy(false);
+  }
+}
+
+// ----- 9. CREATE A NOTE (POST) -----  
 async function createNote(title, body) {
   // Before the request: tell the user and block extra clicks
   setStatus("Creating note...", "loading");
@@ -178,7 +228,7 @@ async function createNote(title, body) {
     }
 
     // Add the returned note to the TOP of the list
-    notes.unshift(result.data);
+    notes.unshift({ ...result.data, createdHere: true});
     renderNotes();
 
     setStatus(`Note created (status ${result.status}, id ${result.data.id}).`, "success");
@@ -194,7 +244,7 @@ async function createNote(title, body) {
   }
 }
 
-// ----- 10. FORM SUBMIT -----  [TASK 2]
+// ----- 10. FORM SUBMIT -----  
 async function handleSubmit(event) {
   // Stop the browser from reloading the page
   event.preventDefault();
